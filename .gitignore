@@ -1,0 +1,15 @@
+*~
+*.pyc
+.idea/*
+*.egg-info/*
+*tmp*.py
+*.*.backup
+**/__pycache__/
+**/results/
+**/results_rocgan/
+**/template_icl/
+.chainerui_commands
+
+# personal testout files.
+personal.py
+

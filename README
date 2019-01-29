@@ -1,0 +1,5 @@
+Chainer implementation of the paper Robust Conditional GAN:
+https://openreview.net/forum?id=Byg0DsCqYQ
+
+The code is highly influenced from https://github.com/pfnet-research/sngan_projection
+
