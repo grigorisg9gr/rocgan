@@ -148,11 +148,9 @@ def main():
     })
     updater = yaml_utils.load_updater_class(config)
     updater = updater(**kwargs)
-    if imperialpc:
+    if not args.test:
         mainf = '{}_{}'.format(strftime('%Y_%m_%d__%H_%M_%S'), args.label)
         out = os.path.join(args.results_dir, mainf, '')
-    elif not args.test:
-        out = args.results_dir
     else:
         out = 'results/test'
     if comm.rank == 0:
@@ -161,11 +159,14 @@ def main():
     # # abbreviations below: inc -> incpetion, gadv -> grad_adv, lgen -> loss gener, 
     # # {m, sd, b}[var] -> {mean, std, best position} [var], 
     report_keys = ['loss_dis', 'lgen_adv', 'dis_real', 'dis_fake', 'loss_l1', 'lrec_l1',
-                   'mssim', 'sdssim', 'mmae', 'loss_projl', 'llat', 'FID']
+                   'mssim', 'mmae', 'loss_projl', 'llat', 'ldecov', 'FID']
 
     if comm.rank == 0:
         # Set up logging
-        for m in models.values():
+        for k, m in models.items():
+            if k == 'enc_ae':
+                # # skip exporting the ae pathway (overrides the reg).
+                continue
             trainer.extend(extensions.snapshot_object(
                 m, m.__class__.__name__ + '_{.updater.iteration}.npz'), trigger=(config.snapshot_interval, 'iteration'))
 #         trainer.extend(extensions.snapshot_object(

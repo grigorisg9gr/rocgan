@@ -144,11 +144,9 @@ def main():
     })
     updater = yaml_utils.load_updater_class(config)
     updater = updater(**kwargs)
-    if imperialpc:
+    if not args.test:
         mainf = '{}_{}'.format(strftime('%Y_%m_%d__%H_%M_%S'), args.label)
         out = os.path.join(args.results_dir, mainf, '')
-    elif not args.test:
-        out = args.results_dir
     else:
         out = 'results/test'
     if comm.rank == 0:

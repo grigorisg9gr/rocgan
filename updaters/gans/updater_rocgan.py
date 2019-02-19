@@ -18,6 +18,9 @@ class Updater(chainer.training.StandardUpdater):
         self.mma1 = kwargs.pop('mma1') if 'mma1' in kwargs else None
         self.mma2 = kwargs.pop('mma2') if 'mma2' in kwargs else None
         self.update_gener = kwargs.pop('update_gener') if 'update_gener' in kwargs else True
+        self.upd_less_ae = kwargs.pop('upd_less_ae') if 'upd_less_ae' in kwargs else False
+        self.upd_ae_freq = kwargs.pop('upd_ae_freq') if 'upd_ae_freq' in kwargs else 3
+        self.upd_less_st = kwargs.pop('upd_less_st') if 'upd_less_st' in kwargs else 1000
         # # in cgan we have additional losses in generator, added as a list.
         self.add_loss_gen = kwargs.pop('add_loss_gen') if 'add_loss_gen' in kwargs else []
         self.add_loss_dis = kwargs.pop('add_loss_dis') if 'add_loss_dis' in kwargs else []
@@ -26,6 +29,7 @@ class Updater(chainer.training.StandardUpdater):
         self.recl1_weight = kwargs.pop('recl1_weight') if 'recl1_weight' in kwargs else 1
         self.latl_weight = kwargs.pop('latl_weight') if 'latl_weight' in kwargs else 1
         self.projl_weight = kwargs.pop('projl_weight') if 'projl_weight' in kwargs else 1
+        self.decovl_weight = kwargs.pop('decovl_weight') if 'decovl_weight' in kwargs else 1
         if self.loss_type == 'softplus':
             self.loss_gen = losses.loss_dcgan_gen
             self.loss_dis = losses.loss_dcgan_dis
@@ -54,7 +58,7 @@ class Updater(chainer.training.StandardUpdater):
             lat = enc(x_real)
             x_fake = dec(lat)
         # # in rocgan, the third return argument is devoted to 
-        # # latent representation (required for latent loss).
+        # # latent representation (required for latent/decov loss).
         return x_fake, None, lat
 
     def get_batch(self, xp):
@@ -96,6 +100,16 @@ class Updater(chainer.training.StandardUpdater):
             elif lt == 'latl':
                 # # latent loss.
                 loss_lat = F.mean_absolute_error(lat_reg, lat_ae)
+                chainer.reporter.report({'llat': loss_lat.array})
+                loss += self.latl_weight * loss_lat
+            elif lt == 'decovl':
+                # # decov loss.
+                loss_decov = losses.decov_loss(lat_ae)
+                chainer.reporter.report({'ldecov': loss_decov.array})
+                loss += self.decovl_weight * loss_decov
+            elif lt == 'latl2':
+                # # latent loss.
+                loss_lat = F.mean_squared_error(lat_reg, lat_ae)
                 chainer.reporter.report({'llat': loss_lat.array})
                 loss += self.latl_weight * loss_lat
             else:
@@ -172,6 +186,9 @@ class Updater(chainer.training.StandardUpdater):
                 dis_fake = dis(x_fake, y=y_fake)
                 # # call the generation for the ae path.
                 y_recon, _, lat_ae = self._generate_samples(y_real, ae_pathway=True)
+                if self.upd_less_ae and self.iteration % self.upd_ae_freq != 0 and self.iteration > self.upd_less_st:
+                    lat_ae.unchain_backward()
+                    y_recon.unchain_backward()
                 loss_gen = self.total_loss_gen(dis_fake, x_fake, y_real, y_recon, 
                                                lat_reg, lat_ae)
                 enc.cleargrads()

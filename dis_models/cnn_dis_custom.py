@@ -1,11 +1,6 @@
-import sys
-import os
-
 import chainer
 import chainer.functions as F
 import chainer.links as L
-from chainer import cuda
-import numpy as np
 from source.links.sn_linear import SNLinear
 from source.links.sn_convolution_2d import SNConvolution2D
 from functools import partial

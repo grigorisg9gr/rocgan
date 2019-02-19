@@ -7,14 +7,19 @@ from source.miscs.random_samples import sample_continuous
 
 class Decoder(chainer.Chain):
     def __init__(self, dim_z=128, distribution='normal', layers=None, activs=None, 
-                 norms='batch', skip_enc=None):
+                 norms='batch', skip_enc=None, initializer=None,
+                 noise_skip=False, noise_cov=0.1):
         super(Decoder, self).__init__()
         if layers is None:
             # # format as in Convolution2D: 
             # # out_channels, in_channels, kernel, stride, pad.
             layers = [(512, 512, 4, 4, 0), (512, 64, 4, 2, 1), 
                       (64, 64, 4, 2, 1), (64, 3, 4, 4, 0)]
+        if initializer == 'ortho':
+            initializer = chainer.initializers.Orthogonal
         self.n_layers = len(layers)
+        self.noise_skip = noise_skip
+        self.noise_cov = noise_cov
         if activs is None:
             # # if no activations provided, initialize with relu
             # # apart from last layer (tanh).
@@ -52,12 +57,12 @@ class Decoder(chainer.Chain):
         with self.init_scope():
             # # instead of hardcoding the layers, loop over the list and define them.
             for layer in range(1, self.n_layers):
-                setattr(self, 'tconv{}'.format(layer), L.Deconvolution2D(*layers[layer - 1]))
+                setattr(self, 'tconv{}'.format(layer), L.Deconvolution2D(*layers[layer - 1], initialW=initializer))
                 if self.norms[layer - 1] is not None:
                     setattr(self, 'norm{}'.format(layer), norms[layer - 1](layers[layer - 1][1]))
             # # set the last layer properties, e.g. no batch norm.
             layer = self.n_layers
-            setattr(self, 'tconv{}'.format(layer), L.Deconvolution2D(*layers[layer - 1]))
+            setattr(self, 'tconv{}'.format(layer), L.Deconvolution2D(*layers[layer - 1], initialW=initializer))
 
     def __call__(self, x, skips=None, z=None, save_res=False, add_noise=False, **kwargs):
         if z is None and add_noise:
@@ -73,15 +78,17 @@ class Decoder(chainer.Chain):
         # # loop over the layers and apply convolutions along with the
         # # normalizations per layer.
         for l in range(1, self.n_layers):
-            print(h.shape, self.skip_enc[l], skips[self.skip_enc[l]].shape)
             if self.skip_enc is not None and self.skip_enc[l] > 0:
                 # # in this case, we concatenate the skip with our representation.
                 # # The -1 below, since skips includes a zero-based list of all 
                 # # encoder layer outputs, i.e. skips[0] -> output of 1st
                 # # encoder layer. To get l^th encoder layer's output -> skips[l-1].
-                h = F.concat([skips[self.skip_enc[l] - 1], h])
+                if self.noise_skip:
+                    noise = self.xp.random.normal(loc=0, scale=self.noise_cov, size=h.shape).astype("f")
+                    h = F.concat([skips[self.skip_enc[l] - 1] + noise, h])
+                else:
+                    h = F.concat([skips[self.skip_enc[l] - 1], h])
             h = getattr(self, 'tconv{}'.format(l))(h)
-            #print('Debugging, decoder step {}: '.format(l), h.shape)
             if self.norms[l - 1] is not None:
                 h = getattr(self, 'norm{}'.format(l))(h)
             h = self.activs[l - 1](h)
@@ -92,10 +99,9 @@ class Decoder(chainer.Chain):
         if self.skip_enc is not None and self.skip_enc[l] > 0:
             h = F.concat([skips[self.skip_enc[l] - 1], h])
         h = getattr(self, 'tconv{}'.format(l))(h)
-        #print('Debugging, decoder step {}: '.format(self.n_layers), h.shape)
         if save_res:
-            # # even though the outputs of the previous layers are after 
-            # # activation, this is the opposite.
+            # # even though the outputs of the previous layers are appened 
+            # # (into outs) after the activation, this is before.
             outs.append(h)
         h = self.activs[-1](h)
         if not save_res:

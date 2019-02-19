@@ -4,7 +4,7 @@ iteration_decay_start: 700000
 seed: 0
 display_interval: 100
 snapshot_interval: 100000
-evaluation_interval: 10000
+evaluation_interval: 20000
 
 models:
   encoder:
@@ -12,6 +12,7 @@ models:
     name: Encoder
     args:
       norms: batch
+      sn: False
       layers: [[3, 64, 4, 2, 1], [64, 64, 4, 2, 1], [64, 128, 4, 2, 1], [128, 256, 4, 2, 1], [256, 512, 4, 4, 0]]
 
   decoder:
@@ -22,7 +23,7 @@ models:
       layers: [[512, 256, 4, 4, 0], [256, 128, 4, 2, 1], [128, 64, 4, 2, 1], [64, 64, 4, 2, 1], [64, 3, 4, 2, 1]]
 
   discriminator:
-      fn: /home/user/dis_models/cnn_dis_grigoris.py
+      fn: /home/user/dis_models/cnn_dis_custom.py
       name: CNNDiscriminator
       args:
         sn: False
@@ -43,7 +44,7 @@ dataset:
     crop_size: 64
     corrupt: True
     type_corr: sparse
-
+    mask: [0.5, 1.5]
 
 adam:
   alpha: 0.0002

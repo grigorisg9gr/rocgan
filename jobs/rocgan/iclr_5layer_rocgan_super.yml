@@ -1,6 +1,6 @@
 batchsize: 64
 iteration: 300000
-iteration_decay_start: 1200000
+iteration_decay_start: 700000
 seed: 0
 display_interval: 100
 snapshot_interval: 100000
@@ -42,15 +42,14 @@ dataset:
   dataset_fn: /home/user/datasets/denoising_db.py
   dataset_name: DenoisingDb
   args:
-    root: /data2/latent_subspace/msceleb_75x75/
-    path: /data2/latent_subspace/msceleb_75x75/files.txt
+    root: /data2/latent_subspace/superres/
+    path: /data2/latent_subspace/superres/files.txt
     size: 64
     resize_method: bilinear
     augmentation: False
     crop_size: 64
     corrupt: True
-    type_corr: sparse
-    mask: [0.5, 1.5]
+    type_corr: im2im
 
 
 adam:
@@ -71,5 +70,5 @@ updater:
     add_loss_dis: [projl]
     projl_weight: 100
     recl1_weight: 100
-    latl_weight: 20
+    latl_weight: 1
 

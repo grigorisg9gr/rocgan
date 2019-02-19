@@ -1,10 +1,10 @@
 batchsize: 64
 iteration: 300000
-iteration_decay_start: 1200000
+iteration_decay_start: 700000
 seed: 0
 display_interval: 100
 snapshot_interval: 100000
-evaluation_interval: 20000
+evaluation_interval: 10000
 
 models:
   encoder:
@@ -31,26 +31,18 @@ models:
         layer_d: [3, 64, 64, 64, 4096]
         n_l: 3
 
-  encoder_ae:
-    fn: /home/user/enc_models/encoder_cnn.py
-    name: Encoder
-    args:
-      norms: batch
-      layers: [[3, 64, 4, 2, 1], [64, 64, 4, 2, 1], [64, 128, 4, 2, 1], [128, 256, 4, 2, 1], [256, 512, 4, 4, 0]]
-
 dataset:
   dataset_fn: /home/user/datasets/denoising_db.py
   dataset_name: DenoisingDb
   args:
-    root: /data2/latent_subspace/msceleb_75x75/
-    path: /data2/latent_subspace/msceleb_75x75/files.txt
+    root: /data2/latent_subspace/superres/
+    path: /data2/latent_subspace/superres/files.txt
     size: 64
     resize_method: bilinear
     augmentation: False
     crop_size: 64
     corrupt: True
-    type_corr: sparse
-    mask: [0.5, 1.5]
+    type_corr: im2im
 
 
 adam:
@@ -59,17 +51,15 @@ adam:
   beta2: 0.9
 
 updater:
-  fn: //home/user/updaters/gans/updater_rocgan.py
+  fn: //home/user/updaters/gans/updater_cgan.py
   name: Updater
   args:
     n_dis: 1
     n_gen_samples: 32
     conditional: False
     loss_type: softplus
-    add_loss_gen: [l1, rec_l1, latl]
+    add_loss_gen: [l1]
     l1_weight: 100
     add_loss_dis: [projl]
     projl_weight: 100
-    recl1_weight: 100
-    latl_weight: 20
 

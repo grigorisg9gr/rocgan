@@ -31,6 +31,10 @@ def get_batch(iterator, xp):
         x.append(np.asarray(batch[j][0][:3]).astype('f'))
         if batch[j][0].shape[0] > 3:
             y.append(np.asarray(batch[j][0][3:]).astype('f'))
+        elif len(batch[j]) > 2:
+            # # case where the iterator returns multiple images, assumed
+            # # that it returns image, label, image.
+            y.append(np.asarray(batch[j][2]).astype('f'))
     x_real = Variable(xp.asarray(x))
     y_real = Variable(xp.asarray(y)) if len(y) > 0 else x_real
     return x_real, y_real
@@ -55,17 +59,19 @@ def deprocess_image_var(x):
     return x
 
 
-def gen_images_cgan(enc, dec, iterator, n=4000):
+def gen_images_cgan(enc, dec, iterator, n=4000, func=None):
     """
     Gets the inputs and targets of the generator (encoder-decoder)
     network; it applies the network and returns the reconstructions.
+    Optionally applies a func after the decoder.
     """
-    # # corrupted, gt and generated images lists. 
+    # # corrupted, gt and generated images lists.
     ims_cor, ims_gt, ims_gen = [], [], []
     xp = dec.xp
     for i in range(0, n, iterator.batch_size):
         x_real, y_real = get_batch(iterator, xp)
-        with chainer.using_config('train', False), chainer.using_config('enable_backprop', False):
+        with chainer.using_config('train', False), \
+             chainer.using_config('enable_backprop', func is not None):
             if hasattr(dec, 'skip_enc') and dec.skip_enc is not None:
                 # # we need to save outputs of encoder (skip case).
                 lat, enc_outs = enc(x_real, save_res=True)
@@ -73,6 +79,9 @@ def gen_images_cgan(enc, dec, iterator, n=4000):
             else:
                 lat = enc(x_real)
                 x = dec(lat)
+            if func is not None:
+                # # apply the function provided as an argument.
+                x_real, y_real, x = func(x_real, y_real, x)
         # # append each image to the respective list.
         ims_gen.append(deprocess_image_var(x))
         ims_cor.append(deprocess_image_var(x_real))
@@ -93,7 +102,7 @@ def compute_FID(ims, path_inception, stat_file, batchsize=100):
     # # for the clean images.
     stat = np.load(stat_file)
     with chainer.using_config('train', False), chainer.using_config('enable_backprop', False):
-        mean, cov = get_mean_cov(model, ims)
+        mean, cov = get_mean_cov(model, ims, batch_size=batchsize)
     fid = FID(stat['mean'], stat['cov'], mean, cov)
     chainer.reporter.report({'FID': fid})
     return fid

@@ -24,6 +24,7 @@ class Updater(chainer.training.StandardUpdater):
         # # additional kwargs for different losses.
         self.l1_weight = kwargs.pop('l1_weight') if 'l1_weight' in kwargs else 1
         self.projl_weight = kwargs.pop('projl_weight') if 'projl_weight' in kwargs else 1
+        self.decovl_weight = kwargs.pop('decovl_weight') if 'decovl_weight' in kwargs else 1
         if self.loss_type == 'softplus':
             self.loss_gen = losses.loss_dcgan_gen
             self.loss_dis = losses.loss_dcgan_dis
@@ -50,7 +51,9 @@ class Updater(chainer.training.StandardUpdater):
             # # encoder's output is provided to the decoder.
             lat = enc(x_real)
             x_fake = dec(lat)
-        return x_fake, None
+        # # in rocgan, the third return argument is devoted to 
+        # # latent representation (required for latent/decov loss).
+        return x_fake, None, lat
 
     def get_batch(self, xp):
         batch = self.get_iterator('main').next()
@@ -67,7 +70,7 @@ class Updater(chainer.training.StandardUpdater):
         y_real = Variable(xp.asarray(y)) if len(y) > 0 else x_real
         return x_real, y_real
 
-    def total_loss_gen(self, dis_fake, x_fake, y_real):
+    def total_loss_gen(self, dis_fake, x_fake, y_real, lat=None):
         """
         Function to compute the total loss of the generator.
         """
@@ -79,9 +82,15 @@ class Updater(chainer.training.StandardUpdater):
         for lt in self.add_loss_gen:
             if lt == 'l1':
                 # # L1 loss.
+                #print(y_real.array.max(), x_fake.array.max(), x_fake.array.mean())
                 loss_l1 = F.mean_absolute_error(y_real, x_fake)
                 chainer.reporter.report({'loss_l1': loss_l1.array})
                 loss += self.l1_weight * loss_l1
+            elif lt == 'decovl':
+                # # decov loss.
+                loss_decov = losses.decov_loss(lat)
+                chainer.reporter.report({'ldecov': loss_decov.array})
+                loss += self.decovl_weight * loss_decov
             else:
                 m1 = 'Not recognized loss type ({}).'
                 raise RuntimeError(m1.format(lt))
@@ -126,7 +135,7 @@ class Updater(chainer.training.StandardUpdater):
             else:
                 dis_real = dis(y_real)
             # # in cgan, x_fake is the output of the generator.
-            x_fake, y_fake = self._generate_samples(x_real)
+            x_fake, y_fake, _ = self._generate_samples(x_real)
             if 'projl' in self.add_loss_dis:
                 # # in this case, we want the representation.
                 dis_fake, ffake = dis(x_fake, y=y_fake, return_feature=True)
@@ -149,10 +158,10 @@ class Updater(chainer.training.StandardUpdater):
 
             if i == self.n_dis - 1 and self.update_gener:
                 # # Run a second time for updating the generator.
-                x_fake, y_fake = self._generate_samples(x_real)
+                x_fake, y_fake, lat = self._generate_samples(x_real)
                 # # since we do not update discriminator, we do not need features here.
                 dis_fake = dis(x_fake, y=y_fake)
-                loss_gen = self.total_loss_gen(dis_fake, x_fake, y_real)
+                loss_gen = self.total_loss_gen(dis_fake, x_fake, y_real, lat=lat)
                 enc.cleargrads()
                 dec.cleargrads()
                 loss_gen.backward()
@@ -160,7 +169,7 @@ class Updater(chainer.training.StandardUpdater):
                 enc_optimizer.update()
                 loss_gen.unchain_backward()
                 
-                del loss_gen
+                del loss_gen, lat
 
         self.mma2.update(dec) if self.mma2 is not None else None
         self.mma1.update(enc) if self.mma1 is not None else None
