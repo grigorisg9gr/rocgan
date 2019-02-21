@@ -1,0 +1,74 @@
+batchsize: 10
+iteration: 300000
+iteration_decay_start: 700000
+seed: 0
+display_interval: 10
+snapshot_interval: 100000
+evaluation_interval: 20000
+
+models:
+  encoder:
+    fn: /home/user/enc_models/encoder_cnn.py
+    name: Encoder
+    args:
+      norms: batch
+      layers: [[3, 64, 4, 2, 1], [64, 64, 4, 2, 1], [64, 128, 4, 2, 1], [128, 256, 4, 2, 1], [256, 512, 4, 4, 0]]
+
+  decoder:
+    fn: /home/user/gen_models/decoder_cnn.py
+    name: Decoder
+    args:
+      norms: batch
+      layers: [[512, 256, 4, 4, 0], [256, 128, 4, 2, 1], [128, 64, 4, 2, 1], [64, 64, 4, 2, 1], [64, 3, 4, 2, 1]]
+
+  discriminator:
+      fn: /home/user/dis_models/cnn_dis_custom.py
+      name: CNNDiscriminator
+      args:
+        sn: False
+        use_bn: True
+        add_last: False
+        layer_d: [3, 64, 64, 64, 4096]
+        n_l: 3
+
+  encoder_ae:
+    fn: /home/user/enc_models/encoder_cnn.py
+    name: Encoder
+    args:
+      norms: batch
+      layers: [[3, 64, 4, 2, 1], [64, 64, 4, 2, 1], [64, 128, 4, 2, 1], [128, 256, 4, 2, 1], [256, 512, 4, 4, 0]]
+
+dataset:
+  dataset_fn: /home/user/datasets/denoising_db.py
+  dataset_name: DenoisingDb
+  args:
+    root: demo
+    path: demo/files.txt
+    size: 64
+    resize_method: bilinear
+    augmentation: False
+    crop_size: 64
+    corrupt: True
+    type_corr: im2im
+
+
+adam:
+  alpha: 0.0002
+  beta1: 0.5
+  beta2: 0.9
+
+updater:
+  fn: //home/user/updaters/gans/updater_rocgan.py
+  name: Updater
+  args:
+    n_dis: 1
+    n_gen_samples: 32
+    conditional: False
+    loss_type: softplus
+    add_loss_gen: [l1, rec_l1, latl]
+    l1_weight: 100
+    add_loss_dis: [projl]
+    projl_weight: 100
+    recl1_weight: 100
+    latl_weight: 1
+
