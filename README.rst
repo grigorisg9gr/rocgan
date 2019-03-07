@@ -3,7 +3,9 @@ Robust Conditional GAN
 ======================
 
 Chainer implementation of the ICLR paper "**Robust Conditional Generative Adversarial Networks**"
+
 https://openreview.net/forum?id=Byg0DsCqYQ [1]_
+
 
 Robust Conditional GANs aim at leveraging structure in the target space of the generator by augmenting it with a new, unsupervised pathway to learn the target structure. 
 
@@ -44,8 +46,11 @@ pretrained files correspond to the journal version of the code (currently under
 review).
 
 Tested on a Linux machine with:
+
 * chainer=4.0.0, chainercv=0.9.0,
+
 * chainer=5.2.0, chainercv=0.12.0.
+
 
 The code is highly influenced by [2]_.
 
