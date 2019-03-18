@@ -63,7 +63,7 @@ If you use this code, please cite [1]_:
 
   @inproceedings{
   chrysos2018rocgan,
-  title={RoC-{GAN}: Robust Conditional {GAN}},
+  title={Robust Conditional Generative Adversarial Networks},
   author={Grigorios G. Chrysos and Jean Kossaifi and Stefanos Zafeiriou},
   booktitle={International Conference on Learning Representations (ICLR)},
   year={2019},
