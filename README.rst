@@ -25,18 +25,24 @@ To train the network, e.g. with rocgan, you can execute the following command::
 
    python jobs/rocgan/train_mn.py '--config jobs/rocgan/iclr_5layer_rocgan_super.yml' 
 
+The yml file describes the modules/dataset to train on. The hyper-parameters are included
+in the yml, no need to hardcode them in the files.
+
 
 Dataset preparation
 ===================
 
-The default code for super-resolution (or any task that requires a pair of input/output
-images) requires vertically concatenated images.
+The code is tuned for super-resolution (or any task that requires a pair of input/output
+images). 
+
+In each iteration, a single file is loaded from disk; this file is the vertical concatenation of
+the input and the output images. 
 Please see the demo/ folder for some samples; the idea is to vertically concatenate
 the images with the input (e.g. corrupted) image on top and the output image on
 the bottom. 
+All images are resized to 64x64 for training/testing.
 
-Most of the other configurations are included in the `*.yml` that defines the 
-modules/datasets to include in the training.
+
 
 Misc
 ====
@@ -53,6 +59,8 @@ Tested on a Linux machine with:
 
 
 The code is highly influenced by [2]_.
+
+Apart from Chainer, the code depends on Pyaml [3]_. 
 
 
 Citing
@@ -76,3 +84,5 @@ References
 .. [1] Grigorios G. Chrysos, Jean Kossaifi and Stefanos Zafeiriou, **Robust Conditional Generative Adversarial Networks**, *International Conference on Learning Representations (ICLR)*, 2019.
 
 .. [2] https://github.com/pfnet-research/sngan_projection
+
+.. [3] https://pypi.org/project/pyaml/
