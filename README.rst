@@ -47,17 +47,17 @@ Browsing the folders
 ====================
 The folder structure is the following:
 
-*    gen_models/: The folder for the generator models.
+*    ``gen_models``: The folder for the generator models.
 
-*    dis_models/: The folder for the discriminator models; do not modify the optional arguments, unless you know what you are doing.
+*    ``dis_models``: The folder for the discriminator models; do not modify the optional arguments, unless you know what you are doing.
 
-*    updater/: The folder that contains the core code for the updater, i.e. the chunk of code that runs in every iteration to update the modules.
+*    ``updater``: The folder that contains the core code for the updater, i.e. the chunk of code that runs in every iteration to update the modules.
 
-*    jobs/: It contains a) the yml with the hyper-parameter setting, b) the main command to load the models and run the training (train_mn*.py).
+*    ``jobs``: It contains a) the yml with the hyper-parameter setting, b) the main command to load the models and run the training (train_mn*.py).
 
-*    source/: It contains auxiliary code, you should probably not modify any of that code.
+*    ``source``: It contains auxiliary code, you should probably not modify any of that code.
 
-*    evaluations/: It contains the code for validation (either during training or offline).
+*    ``evaluations``: It contains the code for validation (either during training or offline).
 
 Misc
 ====
