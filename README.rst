@@ -46,6 +46,7 @@ All images are resized to 64x64 for training/testing.
 Browsing the folders
 ====================
 The folder structure is the following:
+
 *    gen_models/: The folder for the generator models.
 
 *    dis_models/: The folder for the discriminator models; do not modify the optional arguments, unless you know what you are doing.
