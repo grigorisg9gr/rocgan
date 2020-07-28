@@ -63,8 +63,7 @@ Misc
 ====
 
 The results are improved over the original ICLR publication; those results and
-pretrained files correspond to the journal version of the code (currently under
-review).
+pretrained files correspond to the IJCV version [4]_.
 
 Tested on a Linux machine with:
 
@@ -92,6 +91,20 @@ If you use this code, please cite [1]_:
   year={2019},
   url={https://openreview.net/forum?id=Byg0DsCqYQ},
   }
+
+or:
+
+  @article{
+  chrysos2020rocgan,
+  title={RoCGAN: Robust Conditional GAN},
+  author={Grigorios G. Chrysos and Jean Kossaifi and Stefanos Zafeiriou},
+  journal={International Journal of Computer Vision},
+  pages={1--19},
+  year={2020},
+  publisher={Springer}
+  }
+
+
   
 References
 ==========
@@ -101,3 +114,6 @@ References
 .. [2] https://github.com/pfnet-research/sngan_projection
 
 .. [3] https://pypi.org/project/pyaml/
+
+.. [4] Grigorios G. Chrysos, Jean Kossaifi and Stefanos Zafeiriou, **RoCGAN: Robust Conditional GAN**, *International Journal of Computer Vision*, 2020.
+
