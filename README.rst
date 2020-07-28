@@ -64,8 +64,7 @@ The folder structure is the following:
 Misc
 ====
 
-The results are improved over the original ICLR publication; those results and
-pretrained files correspond to the IJCV version [4]_.
+The results and the pretrained files correspond to the IJCV version [4]_.
 
 Tested on a Linux machine with:
 
@@ -81,7 +80,7 @@ Apart from Chainer, the code depends on Pyaml [3]_.
 
 Citing
 ======
-If you use this code, please cite [1]_:
+If you use this code, please cite [1]_ or [4]_:
 
 *BibTeX*:: 
 
