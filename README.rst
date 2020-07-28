@@ -6,6 +6,8 @@ Chainer implementation of the ICLR paper "**Robust Conditional Generative Advers
 
 https://openreview.net/forum?id=Byg0DsCqYQ [1]_
 
+https://link.springer.com/article/10.1007/s11263-020-01348-5 [4]_
+
 
 Robust Conditional GANs aim at leveraging structure in the target space of the generator by augmenting it with a new, unsupervised pathway to learn the target structure. 
 
@@ -92,7 +94,7 @@ If you use this code, please cite [1]_:
   url={https://openreview.net/forum?id=Byg0DsCqYQ},
   }
 
-or:
+or::
 
   @article{
   chrysos2020rocgan,
